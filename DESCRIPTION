@@ -1,11 +1,15 @@
 Package: ppmify
-Title: What the package does (one line)
+Title: convert your Poisson regression into a Poisson point process model
 Version: 0.1
-Authors@R: "First Last <first.last@example.com> [aut, cre]"
-Description: What the package does (one paragraph)
-Depends: 
-    R (>= 3.2.4)
-License: What license is it under?
+Authors@R: c(person("Nick", "Golding", email = "nick.golding.research@gmail.com", role = c("aut", "cre")))
+Description: a micropackage to help fitting Poisson point process models to point data, using the variety of Poisson regression models available in R.
+Depends:
+    R (>= 3.2.4),
+    raster,
+    sp
+License: MIT + file LICENSE
 LazyData: true
-RoxygenNote: 5.0.1
 Suggests: testthat
+URL: https://github.com/goldingn/ppmify
+BugReports: https://github.com/goldingn/ppmify/issues
+RoxygenNote: 5.0.1
