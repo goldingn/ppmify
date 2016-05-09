@@ -8,12 +8,14 @@
 #'   model. See \code{\link{ppmify}} for details.
 #' @docType package
 #' @import raster
+#' @import sp
 
 NULL
 
 
 #' @name ppmify
 #' @title create a ppm object from point data
+#' @export
 #' @param coords a matrix, dataframe or SpatialPoints* object giving the
 #'   coordinates of the points to use in the PPM analysis
 #' @param area an optional extent, SpatialPolygons* or Raster* object giving the
@@ -39,4 +41,6 @@ ppmify <- function (coords,
 
   # define the classes
   class(ppm) <- c(class(ppm), 'ppm')
+
+  return (ppm)
 }
