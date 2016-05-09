@@ -66,6 +66,9 @@ ppmify <- function (coords,
   # convert coordinates into a dataframe
   coords <- coords2df(coords)
 
+  # if an area isn't provided, generate a bounding box
+  if (is.null(area)) area <- defaultArea(coords)
+
   # generate integration points
   int <- switch(method,
                 grid = grid(area, density),
@@ -81,17 +84,21 @@ ppmify <- function (coords,
                     offset = c(rep(0, npts),
                                log(int$weight)))
 
-  # extract covariates
-  covs <- data.frame(extract(covariates, ppm[, c('x', 'y')]))
-  names(covs) <- names(covariates)
+  # add covariates if they are provided
+  if (!is.null(covariates)) {
+    # extract covariates
+    covs <- data.frame(extract(covariates, ppm[, c('x', 'y')]))
+    names(covs) <- names(covariates)
 
-  # make sure there aren't naming conflicts
-  names(covs) <- ifelse(names(covs) %in% names(ppm),
-                        paste0(names(covs), '.1'),
-                        names(covs))
+    # make sure there aren't naming conflicts
+    names(covs) <- ifelse(names(covs) %in% names(ppm),
+                          paste0(names(covs), '.1'),
+                          names(covs))
 
-  # add to ppm
-  ppm <- cbind(ppm, covs)
+    # add to ppm
+    ppm <- cbind(ppm, covs)
+
+  }
 
   # define the class
   class(ppm) <- c(class(ppm), 'ppm')
@@ -122,12 +129,14 @@ coords2df <- function (coords) {
 
     # otherwise, coerce into a data.frame and rename the columns
     df <- data.frame(coords)
-    colnames(df) <- c('x', 'y')
 
   } else {
     # otherwise, for SpatialPoints* objects, just grab the coordinates
     df <- data.frame(coords@coords)
   }
+
+  # set column names
+  colnames(df) <- c('x', 'y')
 
   return (df)
 
@@ -188,5 +197,25 @@ grid <- function (area, density) {
   coords <- coords[coords$weight > 0, ]
 
   return (coords)
+
+}
+
+# create a default area (bounding box of coordinates)
+defaultArea <- function (coords) {
+  # get limits
+  xlim <- range(coords$x)
+  ylim <- range(coords$y)
+
+  # add on 10%
+  xlim <- xlim + c(-1, 1) * diff(xlim) * 0.1
+  ylim <- ylim + c(-1, 1) * diff(ylim) * 0.1
+
+  # make a SpatialPolygons object
+  p <- Polygon(cbind(x = xlim[c(1, 1, 2, 2)],
+                     y = ylim[c(1, 2, 2, 1)]))
+  ps <- Polygons(list(p), 1)
+  sp <- SpatialPolygons(list(ps))
+
+  return (sp)
 
 }
