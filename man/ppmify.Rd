@@ -5,23 +5,29 @@
 \title{create a ppm object from point data}
 \usage{
 ppmify(coords, area = NULL, covariates = NULL, method = c("grid",
-  "count"))
+  "count"), density = 10)
 }
 \arguments{
 \item{coords}{a matrix, dataframe or SpatialPoints* object giving the
-coordinates of the points to use in the PPM analysis}
+coordinates of the points to use in the PPM analysis. If a matrix or
+dataframe, the first column should give the horizontal
+(x/longitude/easting) coordinates, and the second column the vertical
+(y/latitude/northing) coordinates.}
 
 \item{area}{an optional extent, SpatialPolygons* or Raster* object giving the
 area over which to model the point process. If ignored, a rectangle
 defining the extent of \code{coords} will be used instead.}
 
 \item{covariates}{an optional Raster* object containing covariates for
-modelling the poit process}
+modelling the point process}
 
-\item{method}{the method for defining integration area. This will either
+\item{method}{the method for selecting quadrature points. This will either
 generate a set of integration points with appropriate weights, or count the
-number of points falling in each cell (if \code{method = 'full'}). See
+number of points falling in each cell (if \code{method = 'count'}). See
 \code{Details} for information on the available approaches.}
+
+\item{density}{the number of integration points required per square kilometre
+(ignored if \code{method = 'count'})}
 }
 \value{
 an object of classes \code{ppm} and \code{data.frame}
