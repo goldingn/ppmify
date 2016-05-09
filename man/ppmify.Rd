@@ -20,7 +20,16 @@ modelling the poit process}
 
 \item{method}{the method for defining integration area. This will either
 generate a set of integration points with appropriate weights, or count the
-number of points falling in each cell (if \code{method = 'full'}). See \code{Details} for information on the available approaches.}
+number of points falling in each cell (if \code{method = 'full'}). See
+\code{Details} for information on the available approaches.}
+}
+\value{
+an object of classes \code{ppm} and \code{data.frame}
+}
+\description{
+create a \code{ppm} object containing the information needed to
+  fit a Poisson point process model using Poisson regression modelling
+  software.
 }
 \details{
 <integration details to be added>

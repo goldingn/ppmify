@@ -25,9 +25,14 @@ NULL
 #'   modelling the poit process
 #' @param method the method for defining integration area. This will either
 #'   generate a set of integration points with appropriate weights, or count the
-#'   number of points falling in each cell (if \code{method = 'full'}). See \code{Details} for information on the available approaches.
+#'   number of points falling in each cell (if \code{method = 'full'}). See
+#'   \code{Details} for information on the available approaches.
 #'
+#' @description create a \code{ppm} object containing the information needed to
+#'   fit a Poisson point process model using Poisson regression modelling
+#'   software.
 #' @details <integration details to be added>
+#' @return an object of classes \code{ppm} and \code{data.frame}
 #'
 #'
 
@@ -35,6 +40,15 @@ ppmify <- function (coords,
                     area = NULL,
                     covariates = NULL,
                     method = c('grid', 'count')) {
+
+  # check object classes
+  expectClasses(coords,
+                c('matrix',
+                          'data.frame',
+                          'SpatialPoints',
+                          'SpatialPointsDataFrame'),
+                'coords')
+
   # some function
   ppm <- data.frame(y = NA)
 
