@@ -12,10 +12,11 @@
 
 **ppmify** (i.e. ppm-ify, pronounced *p-p-m-if-eye*? never mind...) is a micropackage to help set up Poisson point process models (PPMs) for point data.
 PPMs can be fitted using standard software for Poisson regression, after a little bit of fiddling with the data (adding integration points as pseudo-observations and calculating integration weights).
-This process isn't too difficult, but can be a bit time consuming.
+This process isn't too difficult to do manually, but can be a bit boring, so why bother?
+
 The function `ppmify()` takes the data needed for fitting a PPM, does this fiddling for you, and then returns a dataframe-like object that you can use in your favourite Poisson modelling software.
 That could be GLM, a generalised boosted model (AKA boosted regression tree), elasticnet regression, Gaussian process regression or whatever.
-At some point in the future it should be able to set up slightly more complex integration methods, thinned PPMs, PPMs with attraction/repulsion between points, and possibly even multi-species PPMS - watch this space!
+At some point in the future it should be able to set up slightly more complex integration methods, thinned PPMs, PPMs with attraction/repulsion between points, and possibly even multi-species PPMs - watch this space!
 
 However, this isn't an end-to end solution.
 Once `ppmify()` has handed over the processed data, it's up to the user to fit the Poisson model in the right way.
