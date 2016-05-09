@@ -40,4 +40,20 @@ create a \code{ppm} object containing the information needed to
 \details{
 <integration details to be added>
 }
+\examples{
+# generate some fake point data
+r <- raster(system.file("external/test.grd", package="raster"))
+pts <- sampleRandom(r, 100, xy = TRUE)[, 1:2]
+plot(r, col = grey(0.8))
+points(pts, pch = 16, cex = 0.5)
+
+# generate ppm data
+ppm <- ppmify(pts, area = r, covariates = r)
+
+# fit a model
+m <- glm(points ~ offset(offset) + test,
+         data = ppm,
+         family = poisson)
+
+}
 
