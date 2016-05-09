@@ -1,4 +1,4 @@
-# ppmify
+# ppmify *(p-p-m-ify)*
 
 ### convert your Poisson regression into a Poisson point process model
 
