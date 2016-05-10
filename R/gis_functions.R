@@ -93,7 +93,7 @@ extentDim <- function (extent, lonlat =  TRUE) {
     dim <- c(w, w * ratio)
   } else {
     # else assume a rectangle in m and convert to km
-    dim <- abs(diff(ext)[c(1, 3)]) * 0.1 ^ 3
+    dim <- abs(diff(extent)[c(1, 3)]) * 0.1 ^ 3
   }
   return (dim)
 }
