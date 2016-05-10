@@ -165,38 +165,19 @@ grid <- function (area, density) {
   # get extent of area as a vector
   ext <- as.vector(extent(area))
 
-  # generate an evenly sized raster grid
-  # if the area is in lat/long this is trickier
-  if (isLonLat(area)) {
+  # get dimensions in km
+  dim_area <- extentDim(ext, lonlat = isLonLat(area))
 
-    stop ('lat/long areas not yet supported')
+  # get number of grid cells in each direction
+  ncells <- round(dim_area * density)
 
-    # get cell areas and total extent area
+  # build a raster grid matching this
+  grid <- raster(extent(area),
+                 nrows = ncells[2],
+                 ncols = ncells[1])
 
-    # work out implied height from ratio
-
-    # put down the correct number of cells
-
-    # extract their area
-
-  } else {
-
-    # otherwise, it should be in metres and evenly sized cells, so easier
-
-    # get dimensions in km
-    dim_area <- abs(diff(ext)[c(1, 3)]) * 0.1 ^ 3
-
-    # get number of grid cells in each direction
-    ncells <- round(dim_area * density)
-
-    # build a raster grid matching this
-    grid <- raster(extent(area),
-                   nrows = ncells[1],
-                   ncols = ncells[2])
-
-    grid <- setValues(grid, 1:ncell(grid))
-
-  }
+  # Give cells their number as their value
+  grid <- setValues(grid, 1:ncell(grid))
 
   # extract the surface area of area falling in each cell
   grid <- gridArea(grid, area)

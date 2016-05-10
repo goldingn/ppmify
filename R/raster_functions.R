@@ -51,3 +51,62 @@ gridArea <- function (grid, area, res = 10) {
   return (grid_area)
 
 }
+
+
+# create a default area (bounding box of coordinates)
+defaultArea <- function (coords) {
+  # get limits
+  xlim <- range(coords$x)
+  ylim <- range(coords$y)
+
+  # add on 10%
+  xlim <- xlim + c(-1, 1) * diff(xlim) * 0.1
+  ylim <- ylim + c(-1, 1) * diff(ylim) * 0.1
+
+  # make a SpatialPolygons object
+  p <- Polygon(cbind(x = xlim[c(1, 1, 2, 2)],
+                     y = ylim[c(1, 2, 2, 1)]))
+  ps <- Polygons(list(p), 1)
+  sp <- SpatialPolygons(list(ps))
+
+  return (sp)
+
+}
+
+# calculate the dimensions of an extent in km (either an extent object or
+# four-element vector in the right order), either in projected or spherical
+# space
+extentDim <- function (extent, lonlat =  TRUE) {
+  # coerce to vector if necessary
+  if (inherits(extent, 'extent')) extent <- as.vector(extent)
+  if (lonlat) {
+    # dimensions in degrees
+    height <- abs(diff(extent[1:2]))
+    width <-  abs(diff(cos(extent[3:4])))
+    # Scaling to get spherical surface area in km2
+    scaling <- (6371 ^ 2 * pi) / 180
+    surface_area <- width * height * scaling
+    # ratio between GCD height and width
+    ratio <- lonLatRatio(extent)
+    # calculate equivalent dimensions in km
+    w <- sqrt(surface_area / ratio)
+    dim <- c(w, w * ratio)
+  } else {
+    # else assume a rectangle in m and convert to km
+    dim <- abs(diff(ext)[c(1, 3)]) * 0.1 ^ 3
+  }
+  return (dim)
+}
+
+# get ratio between height and width in great circle distance, given an extent
+# vector in lat/long
+lonLatRatio <- function (extent) {
+  # lower left point
+  p1 <- matrix(extent[c(1, 3)], nrow = 1)
+  # upper left and lower right points
+  p2 <- rbind(extent[c(1, 4)], extent[c(2, 3)])
+  # get ratio between distances
+  dists <- pointDistance(p1, p2, lonlat = TRUE)
+  ratio <- dists[1] / dists[2]
+  return (ratio)
+}
