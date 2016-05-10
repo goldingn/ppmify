@@ -107,7 +107,7 @@ We can then calculate the expected number of points predicted by the model and c
 cellStats(p_cell, sum)
 ```
 
-    ## [1] 120.8125
+    ## [1] 118.1604
 
 ``` r
 nrow(bradypus)
