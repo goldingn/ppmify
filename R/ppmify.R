@@ -49,16 +49,14 @@ NULL
 #' ppm <- ppmify(pts, area = r, covariates = r)
 #'
 #' # fit a model
-#' m <- glm(points ~ offset(offset) + test,
+#' m <- glm(points ~ test + offset(log(weights)),
 #'          data = ppm,
 #'          family = poisson)
 #'
 #' # predict to a raster, remembering to set the offset value
-#' p <- predict(r, m,
-#'  const = data.frame(offset = 0),
-#'  type = 'response')
+#' p <- predict(r, m, type = 'response', const = data.frame(weights = 1))
 #'
-#' # plot results (prediction is points per square km)
+#' # plot results (prediction is in points per square km)
 #' plot(p)
 #' points(ppm[ppm$points == 1, c('x', 'y')], pch = 16, cex = 0.5)
 
@@ -86,12 +84,14 @@ ppmify <- function (coords,
   npts <- nrow(coords)
   nint <- nrow(int)
 
+  eps <- sqrt(.Machine$double.eps)
+
   # set up dataframe
   ppm <- data.frame(points = rep(1:0, c(npts, nint)),
                     x = c(coords$x, int$x),
                     y = c(coords$y, int$y),
-                    offset = c(rep(0, npts),
-                               log(int$weight)))
+                    weights = c(rep(eps, npts),
+                               int$weight))
 
   # add covariates if they are provided
   if (!is.null(covariates)) {
@@ -174,7 +174,8 @@ grid <- function (area, density) {
   # build a raster grid matching this
   grid <- raster(extent(area),
                  nrows = ncells[2],
-                 ncols = ncells[1])
+                 ncols = ncells[1],
+                 crs = crs(area))
 
   # Give cells their number as their value
   grid <- setValues(grid, 1:ncell(grid))

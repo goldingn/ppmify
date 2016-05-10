@@ -51,16 +51,14 @@ points(pts, pch = 16, cex = 0.5)
 ppm <- ppmify(pts, area = r, covariates = r)
 
 # fit a model
-m <- glm(points ~ offset(offset) + test,
+m <- glm(points ~ test + offset(log(weights)),
          data = ppm,
          family = poisson)
 
 # predict to a raster, remembering to set the offset value
-p <- predict(r, m,
- const = data.frame(offset = 0),
- type = 'response')
+p <- predict(r, m, type = 'response', const = data.frame(weights = 1))
 
-# plot results (prediction is points per square km)
+# plot results (prediction is in points per square km)
 plot(p)
 points(ppm[ppm$points == 1, c('x', 'y')], pch = 16, cex = 0.5)
 }
