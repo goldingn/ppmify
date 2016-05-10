@@ -53,6 +53,15 @@ NULL
 #'          data = ppm,
 #'          family = poisson)
 #'
+#' # predict to a raster, remembering to set the offset value
+#' p <- predict(r, m,
+#'  const = data.frame(offset = 0),
+#'  type = 'response')
+#'
+#' # plot results (prediction is points per square km)
+#' plot(p)
+#' points(ppm[ppm$points == 1, c('x', 'y')], pch = 16, cex = 0.5)
+
 
 ppmify <- function (coords,
                     area = NULL,
