@@ -38,12 +38,13 @@ gridArea <- function (grid, area, res = 10) {
 
   # disaggregate grid 10x
   grid_disagg <- disaggregate(grid, res)
+  projection(grid_disagg) <- projection(grid)
 
-  # convert area into a raster of the same size
-  cell_area <- areaRaster(area, grid_disagg)
+  # convert area into a raster of the same size, giving cell areas
+  area_ras <- areaRaster(area, grid_disagg)
 
   # sum by cell number
-  sums <- zonal(cell_area, grid_disagg, fun = 'sum')
+  sums <- zonal(area_ras, grid_disagg, fun = 'sum')
 
   # put back into grid
   grid_area <- reclassify(grid, sums)
