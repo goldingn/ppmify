@@ -1,5 +1,7 @@
 ---
-output: md_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 # ppmify
@@ -43,7 +45,7 @@ library(ppmify)
 library(ppmify)
 ```
 
-If you're a windows users, you may need to install RTools first to use this devtools function
+(If you're a windows user, you may need to install [RTools](https://cran.r-project.org/bin/windows/Rtools/) first to use this `devtools` function)
 
 ### ppmifying things
 
