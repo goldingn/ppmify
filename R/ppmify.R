@@ -112,6 +112,9 @@ ppmify <- function (coords,
   # define the class
   class(ppm) <- c(class(ppm), 'ppm')
 
+  # clean out missing data & warn user
+  ppm <- ppmClean(ppm)
+
   return (ppm)
 
 }
@@ -209,22 +212,36 @@ grid <- function (area, density) {
 
 }
 
-# create a default area (bounding box of coordinates)
-defaultArea <- function (coords) {
-  # get limits
-  xlim <- range(coords$x)
-  ylim <- range(coords$y)
 
-  # add on 10%
-  xlim <- xlim + c(-1, 1) * diff(xlim) * 0.1
-  ylim <- ylim + c(-1, 1) * diff(ylim) * 0.1
+# remove NA values from a ppm object
+ppmClean <- function (ppm) {
 
-  # make a SpatialPolygons object
-  p <- Polygon(cbind(x = xlim[c(1, 1, 2, 2)],
-                     y = ylim[c(1, 2, 2, 1)]))
-  ps <- Polygons(list(p), 1)
-  sp <- SpatialPolygons(list(ps))
+  # remove any points that are NA and issue a warning
+  if (any(is.na(ppm))) {
 
-  return (sp)
+    # copy the original data
+    ppm_old <- ppm
+    # remove NAs
+    ppm <- na.omit(ppm)
+
+    # report which ones were removed
+    rm <- as.vector(attributes(ppm)$na.action)
+    which_rm <- ppm_old$points[rm]
+
+    if (any(which_rm == 0)) {
+      warning(sprintf('Removed %i integration points for which covariate values could not be assigned.
+                      This may affect the results of the model, please check alignment between covariates and area.',
+                      sum(which_rm == 0)))
+    }
+
+    if (any(which_rm == 1)) {
+      warning(sprintf('Removed %i observed points for which covariate values could not be assigned.
+                      This may affect the results of the model, please check alignment between covariates and coords.',
+                      sum(which_rm == 0)))
+    }
+
+  }
+
+  return (ppm)
 
 }
