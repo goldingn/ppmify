@@ -63,6 +63,7 @@ NULL
 
 ppmify <- function (coords,
                     area = NULL,
+                    years = NULL,
                     covariates = NULL,
                     method = c('grid', 'count'),
                     density = 10) {
@@ -87,27 +88,134 @@ ppmify <- function (coords,
   eps <- sqrt(.Machine$double.eps)
 
   # set up dataframe
-  ppm <- data.frame(points = rep(1:0, c(npts, nint)),
-                    x = c(coords$x, int$x),
-                    y = c(coords$y, int$y),
-                    weights = c(rep(eps, npts),
-                               int$weight))
-
-  # add covariates if they are provided
-  if (!is.null(covariates)) {
-    # extract covariates
-    covs <- data.frame(extract(covariates, ppm[, c('x', 'y')]))
-    names(covs) <- names(covariates)
-
-    # make sure there aren't naming conflicts
-    names(covs) <- ifelse(names(covs) %in% names(ppm),
-                          paste0(names(covs), '.1'),
-                          names(covs))
-
-    # add to ppm
-    ppm <- cbind(ppm, covs)
-
-  }
+  if (is.null(years)){
+    
+    ppm <- data.frame(points = rep(1:0, c(npts, nint)),
+                      x = c(coords$x, int$x),
+                      y = c(coords$y, int$y),
+                      weights = c(rep(eps, npts),
+                                  int$weight))  
+    
+    # add covariates if they are provided
+    if (!is.null(covariates)) {
+      
+      # extract covariates
+      covs <- data.frame(extract(covariates, ppm[, c('x', 'y')]))
+      names(covs) <- names(covariates)
+      
+      # make sure there aren't naming conflicts
+      names(covs) <- ifelse(names(covs) %in% names(ppm),
+                            paste0(names(covs), '.1'),
+                            names(covs))
+      
+      # add to ppm
+      ppm <- cbind(ppm, covs)
+      
+    }
+    
+  } else {
+    
+    ppm <- data.frame(points = rep(1:0, c(npts, nint)),
+                      x = c(coords$x, int$x),
+                      y = c(coords$y, int$y),
+                      year = c(years, sample(years, nint, replace=TRUE)),
+                      weights = c(rep(eps, npts),
+                                  int$weight))
+    
+    # add covariates if they are provided
+    if (!is.null(covariates)) {
+      
+      # get index of non temporal covariates
+      nt_idx <- which(!(substr(names(covariates),
+                               nchar(names(covariates)) - 3,
+                               nchar(names(covariates))) %in% c(1900:2100)))
+      
+      if (length(nt_idx)==0) {
+        
+        stop('last 4 characters of yearly covariate names must be the year')
+      }
+      
+      # extract non temporal covariates
+      nt_covariates <- covariates[[nt_idx]]
+      
+      # extract temporal covariates
+      t_covariates <- covariates[[-nt_idx]]
+      
+      # find max and min years for temporal covariates
+      min_year <- as.numeric(min(substr(names(t_covariates),
+                                        nchar(names(t_covariates)) - 3,
+                                        nchar(names(t_covariates)))))
+      
+      max_year <- as.numeric(max(substr(names(t_covariates),
+                                        nchar(names(t_covariates)) - 3,
+                                        nchar(names(t_covariates)))))
+      
+      # make list of general names for temporal covs
+      general_names <- unique(substr(names(t_covariates), 1, nchar(names(t_covariates))-5))
+      
+      # get index of temporal covs of max year
+      max_idx <- which (substr(names(t_covariates),
+                               nchar(names(t_covariates)) - 3,
+                               nchar(names(t_covariates)))==max_year)
+      
+      # create stack of most contemporary covariates
+      contemp_covariates <- addLayer(nt_covariates, t_covariates[[max_idx]])
+      
+      # create empty dataframe with columns for covariates and rows for points
+      # extract covariates
+      covs <- data.frame(extract(contemp_covariates, ppm[, c('x', 'y')]))
+      names(covs) <- c(names(nt_covariates), general_names)
+      
+      # make empty dataframe to populate later
+      covs[] <- NA
+      
+      # loop through extracting covs for all years
+      for (year in min_year:max_year) {
+        
+        # get years for all presence and pseudo data
+        dat_years <- ppm$year
+        
+        # truncate years to the ones we have covariates for
+        dat_years <- pmax(dat_years, min_year)
+        dat_years <- pmin(dat_years, max_year)
+        
+        # index for this year's data
+        idx <- which(dat_years == year)
+        
+        # get index of covs for this year
+        idx2 <- which (substr(names(t_covariates),
+                              nchar(names(t_covariates)) - 3,
+                              nchar(names(t_covariates)))==year)
+        
+        # get covs for this year
+        covs_year <- t_covariates[[idx2]]
+        
+        # add general names
+        names(covs_year) <- general_names
+        
+        # add nontemporal covariates
+        covs_year <- addLayer(nt_covariates, covs_year)
+        
+        # extract data
+        covs_year_extract <- extract(covs_year, ppm[idx, c('x', 'y')])
+        
+        # check they're all there
+        stopifnot(all(colnames(covs) %in% colnames(covs_year_extract)))
+        
+        # match up the column names so they're in the right order
+        match <- match(colnames(covs), colnames(covs_year_extract))
+        
+        # extract covariates for all points
+        covs[idx, ] <- covs_year_extract[, match]
+        
+        
+      } # close years loop 
+      
+      # add to ppm
+      ppm <- cbind(ppm, covs)
+      
+    } # close !is.null(covariates) statement
+  } # close !is.null(years) statement  
 
   # define the class
   class(ppm) <- c(class(ppm), 'ppm')
@@ -219,7 +327,7 @@ ppmClean <- function (ppm) {
     if (any(which_rm == 1)) {
       warning(sprintf('Removed %i observed points for which covariate values could not be assigned.
                       This may affect the results of the model, please check alignment between covariates and coords.',
-                      sum(which_rm == 0)))
+                      sum(which_rm == 1)))
     }
 
   }
