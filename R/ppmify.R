@@ -65,7 +65,8 @@ ppmify <- function (coords,
                     area = NULL,
                     years = NULL,
                     covariates = NULL,
-                    method = c('grid', 'count'),
+                    bias_points = NULL,
+                    method = c('grid', 'count', 'bias', 'biasRaster'),
                     density = 10) {
 
   # get the requested method
@@ -80,7 +81,9 @@ ppmify <- function (coords,
   # generate integration points
   int <- switch(method,
                 grid = grid(area, density),
-                count = NULL)
+                count = NULL,
+                bias = bias(area, bias_points),
+                biasRaster = bias(area, bias_points, offset.raster=TRUE))
 
   npts <- nrow(coords)
   nint <- nrow(int)
@@ -300,6 +303,36 @@ grid <- function (area, density) {
 
   return (coords)
 
+}
+
+bias <- function (area, bias_points, offset.raster=FALSE){
+  
+  # calculate weights for integration points when using pseudo-observations as integration points
+  # weight = total study area / number of integration/quadrature points
+  
+  if (offset.raster){ # if offset raster is also provided, calculate sum of raster values
+    
+    a <- cellStats(area, sum, na.rm=TRUE)  
+    
+  } else {# calculate total study area
+    
+    a <- cellStats(area(area), sum, na.rm=TRUE)
+    
+  }
+  # calculate number of integration points
+  n <- nrow(bias_points)
+  
+  # calculate weights
+  weight <- a/n
+  
+  # convert to pseudo_coords to dataframe
+  bias_points <- coords2df(bias_points)
+  
+  # add weights column to pseudo_coords
+  bias_points$weight <- rep(weight, nrow(bias_points))
+  
+  return(bias_points)
+  
 }
 
 
